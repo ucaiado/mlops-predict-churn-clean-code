@@ -3,10 +3,11 @@ Predict Customer Churn with Clean Code
 
 
 This project is part of the [ ML DevOps Engineer Nanodegree](https://www.udacity.com/course/machine-learning-dev-ops-engineer-nanodegree--nd0821)
- program from Udacity. I develop a traffic simulation in which vehicles move
- along streets and cross intersections. Each intersection will be equipped with
- a traffic light. I built a suitable and thread-safe communication protocol
- between vehicles and intersections to complete the simulation.
+ program from Udacity. I developed a model to identify credit card customers
+ that are most likely to churn, following coding (PEP8) and engineering best
+ practices for implementing software (modular, documented, and tested) and the
+ package also have the flexibility of being run interactively or from the
+ command-line interface (CLI).
 
 
 ### Install
