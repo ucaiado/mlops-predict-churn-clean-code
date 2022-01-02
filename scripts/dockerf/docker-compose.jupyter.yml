@@ -1,0 +1,18 @@
+version: '2'
+services:
+  mlops:
+    image: udacity/mlops
+    container_name: mlops
+    user: root
+    mem_limit: 6G
+    mem_reservation: 256M
+    cpus: 2
+    ports:
+      - "8080:8080"
+      - "8888:8888"
+    volumes:
+      - ../../../mlops-predict-churn-clean-code:/mlops-predict-churn-clean-code
+    command: >
+      bash -c "
+      jupyter notebook --allow-root --no-browser --ip="0.0.0.0" --notebook-dir=/mlops-predict-churn-clean-code --NotebookApp.token='' --allow-root
+      "
