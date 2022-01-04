@@ -90,6 +90,7 @@ y = df['Churn']
 X = pd.DataFrame()
 
 # +
+# %%time
 # gender encoded column
 gender_lst = []
 gender_groups = df.groupby('Gender').mean()['Churn']
