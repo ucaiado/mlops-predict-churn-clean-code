@@ -9,3 +9,20 @@ env-notebook:  ## Start a Jupyter notebook
 	-p mlops \
 	-f scripts/dockerf/docker-compose.jupyter.yml \
 	up
+linter:  ## Lint churn_library file
+	docker-compose \
+	-p mlops \
+	-f scripts/dockerf/docker-compose.py.yml \
+	run --rm -w /mlops-predict-churn-clean-code mlops \
+	bash scripts/linter-code.sh churn_library.py
+bash:  ## Open an interactive terminal in Docker container
+	docker-compose \
+	-p mlops \
+	-f scripts/dockerf/docker-compose.py.yml \
+	run --rm -w /mlops-predict-churn-clean-code mlops
+tests:  ## Test all functions implemented in churn_library
+	docker-compose \
+	-p mlops \
+	-f scripts/dockerf/docker-compose.py.yml \
+	run --rm -w /mlops-predict-churn-clean-code mlops \
+		bash  scripts/test-codes.sh logs/*.log churn_script_logging_and_tests.py

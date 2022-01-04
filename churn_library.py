@@ -1,21 +1,34 @@
-# library doc string
+'''
+Implement functions to predict the company's churn
 
+Author: ucaiado
+Date: January 4th, 2022
+'''
 
 # import libraries
+import numpy as np
+import pandas as pd
 
 
-
-
-def import_data(pth):
+def import_data(s_pth: str) -> pd.DataFrame:
     '''
     returns dataframe for the csv found at pth
 
-    input:
-            pth: a path to the csv
-    output:
-            df: pandas dataframe
-    '''	
-	pass
+    Parameters
+    ----------
+    s_pth : str
+        A path to the csv
+
+    Returns
+    -------
+    df_data :  pandas dataframe
+        Data Matrix
+    '''
+    df_data = pd.read_csv(s_pth)
+    df_data['Churn'] = df_data['Attrition_Flag'].apply(
+        lambda val: 0 if val == "Existing Customer" else 1)
+
+    return df_data
 
 
 def perform_eda(df):
@@ -27,7 +40,7 @@ def perform_eda(df):
     output:
             None
     '''
-	pass
+    pass
 
 
 def encoder_helper(df, category_lst, response):
@@ -58,6 +71,7 @@ def perform_feature_engineering(df, response):
               y_train: y training data
               y_test: y testing data
     '''
+
 
 def classification_report_image(y_train,
                                 y_test,
@@ -94,6 +108,7 @@ def feature_importance_plot(model, X_data, output_pth):
              None
     '''
     pass
+
 
 def train_models(X_train, X_test, y_train, y_test):
     '''
