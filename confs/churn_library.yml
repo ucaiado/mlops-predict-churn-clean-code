@@ -1,0 +1,2 @@
+data_path: "./data/bank_data.csv"
+log_path: "./logs/churn_library.log"

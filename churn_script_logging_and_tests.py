@@ -7,17 +7,33 @@ Date: January 4th, 2022
 import os
 import sys
 import logging
+import yaml
 import churn_library as cls
+
+
+
+'''
+Begin setup structures and global variables
+'''
+
+# load confs
+CONFS = yaml.safe_load(open('confs/churn_library.yml', 'r'))
 
 
 # set logging to write a file and to stodout
 logging.basicConfig(
-    filename='./logs/churn_library.log',
+    filename=CONFS.get('log_path'),
     level = logging.INFO,
     filemode='w',
     format='%(name)s - %(levelname)s - %(message)s')
 
 logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+
+
+
+'''
+End setup structures and global variables
+'''
 
 
 def test_import(import_data: object) -> None:
@@ -26,10 +42,10 @@ def test_import(import_data: object) -> None:
     other test functions
     '''
     try:
-        df = import_data("./data/bank_data.csv")
+        df = import_data(CONFS.get('data_path'))
         logging.info("Testing import_data: SUCCESS")
     except FileNotFoundError as err:
-        logging.error("Testing import_eda: The file wasn't found")
+        logging.error("Testing import_data: The file wasn't found")
         raise err
 
     try:

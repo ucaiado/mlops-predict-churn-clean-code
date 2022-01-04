@@ -8,6 +8,20 @@ Date: January 4th, 2022
 # import libraries
 import numpy as np
 import pandas as pd
+import yaml
+
+
+'''
+Begin setup structures and global variables
+'''
+
+# load confs
+CONFS = yaml.safe_load(open('confs/churn_library.yml', 'r'))
+
+
+'''
+End setup structures and global variables
+'''
 
 
 def import_data(s_pth: str) -> pd.DataFrame:
