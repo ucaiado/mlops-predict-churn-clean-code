@@ -6,23 +6,30 @@ Date: January 4th, 2022
 '''
 
 # import libraries
-import numpy as np
-import pandas as pd
 import yaml
+import joblib
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 
-'''
-Begin setup structures and global variables
-'''
+# setup environment and global variables
+with open('confs/churn_library.yml', 'r', encoding="utf-8") as conf_file:
+    CONFS = yaml.safe_load(conf_file)
 
-# load confs
-CONFS = yaml.safe_load(open('confs/churn_library.yml', 'r'))
+sns.set()
 
 
-'''
-End setup structures and global variables
-'''
+# define help functions
+def _save_figure(fig: plt.Figure, s_path2save: str, s_name: str) -> None:
+    plt.tight_layout()
+    fig.savefig(
+        f'{s_path2save}{s_name}.png',
+        format='png',
+        bbox_inches='tight')
 
+
+# implement mains functions
 
 def import_data(s_pth: str) -> pd.DataFrame:
     '''
@@ -45,39 +52,68 @@ def import_data(s_pth: str) -> pd.DataFrame:
     return df_data
 
 
-def perform_eda(df):
+def perform_eda(df_data: pd.DataFrame) -> None:
     '''
-    perform eda on df and save figures to images folder
-    input:
-            df: pandas dataframe
+    perform eda on df_data and save figures to images folder Parameters
 
-    output:
-            None
+    ----------
+    df_data :  pandas dataframe
+        Data Matrix
+
+    Returns
+    -------
+    None
     '''
-    pass
+    # create histogramns
+    s_path2save = CONFS.get('image_folder')
+    for s_col in CONFS.get('histogram_plots'):
+        fig = plt.figure(figsize=(20, 10))
+        df_data[s_col].hist()
+        _save_figure(fig, s_path2save, s_col)
+
+    # create value count plot from Marital_Status col
+    s_col = 'Marital_Status'
+    fig = plt.figure(figsize=(20, 10))
+    df_data[s_col].value_counts('normalize').plot(
+        kind='bar', figsize=(20, 10))
+    _save_figure(fig, s_path2save, s_col)
+
+    # create distribution plot from Total_Trans_Ct col
+    s_col = 'Total_Trans_Ct'
+    fig = plt.figure(figsize=(20, 10))
+    sns.histplot(df_data[s_col], kde=True)
+    _save_figure(fig, s_path2save, s_col)
+
+    # create a heatmap from correlations between all columns
+    fig = plt.figure(figsize=(20, 10))
+    sns.heatmap(df_data.corr(), annot=False, cmap='Dark2_r', linewidths=2)
+    _save_figure(fig, s_path2save, 'HeatMap')
 
 
-def encoder_helper(df, category_lst, response):
+def encoder_helper(df_data, category_lst, response):
     '''
     helper function to turn each categorical column into a new column with
-    propotion of churn for each category - associated with cell 15 from the notebook
+    propotion of churn for each category - associated with cell 15 from the
+    notebook
 
     input:
-            df: pandas dataframe
+            df_data: pandas dataframe
             category_lst: list of columns that contain categorical features
-            response: string of response name [optional argument that could be used for naming variables or index y column]
+            response: string of response name [optional argument that could be
+            used for naming variables or index y column]
 
     output:
-            df: pandas dataframe with new columns for
+            df_data: pandas dataframe with new columns for
     '''
     pass
 
 
-def perform_feature_engineering(df, response):
+def perform_feature_engineering(df_data, response):
     '''
     input:
-              df: pandas dataframe
-              response: string of response name [optional argument that could be used for naming variables or index y column]
+              df_data: pandas dataframe
+              response: string of response name [optional argument that could
+              be used for naming variables or index y column]
 
     output:
               X_train: X training data
@@ -94,8 +130,8 @@ def classification_report_image(y_train,
                                 y_test_preds_lr,
                                 y_test_preds_rf):
     '''
-    produces classification report for training and testing results and stores report as image
-    in images folder
+    produces classification report for training and testing results and stores
+    report as image in images folder
     input:
             y_train: training response values
             y_test:  test response values
