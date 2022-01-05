@@ -11,7 +11,7 @@ import joblib
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-
+from dataclasses import dataclass
 
 # setup environment and global variables
 with open('confs/churn_library.yml', 'r', encoding="utf-8") as conf_file:
@@ -20,13 +20,21 @@ with open('confs/churn_library.yml', 'r', encoding="utf-8") as conf_file:
 sns.set()
 
 
-# define help functions
+# define help structures
 def _save_figure(fig: plt.Figure, s_path2save: str, s_name: str) -> None:
     plt.tight_layout()
     fig.savefig(
         f'{s_path2save}{s_name}.png',
         format='png',
         bbox_inches='tight')
+
+
+@dataclass
+class InventoryItem:
+    '''Class for keeping track of an item in inventory.'''
+    name: str
+    unit_price: float
+    quantity_on_hand: int = 0
 
 
 # implement mains functions
@@ -54,8 +62,9 @@ def import_data(s_pth: str) -> pd.DataFrame:
 
 def perform_eda(df_data: pd.DataFrame) -> None:
     '''
-    perform eda on df_data and save figures to images folder Parameters
+    perform eda on df_data and save figures to images folder
 
+    Parameters
     ----------
     df_data :  pandas dataframe
         Data Matrix
@@ -90,22 +99,38 @@ def perform_eda(df_data: pd.DataFrame) -> None:
     _save_figure(fig, s_path2save, 'HeatMap')
 
 
-def encoder_helper(df_data, category_lst, response):
+def encoder_helper(
+    df_data: pd.DataFrame,
+    category_lst: list,
+    response: str = None
+    ) -> pd.DataFrame:
     '''
     helper function to turn each categorical column into a new column with
     propotion of churn for each category - associated with cell 15 from the
     notebook
 
-    input:
-            df_data: pandas dataframe
-            category_lst: list of columns that contain categorical features
-            response: string of response name [optional argument that could be
-            used for naming variables or index y column]
+    Parameters
+    ----------
+    df_data: pandas dataframe
+    category_lst: list
+        List of columns that contain categorical features
+    response: str (optional)
+        Response name [could be used for naming variables or index y column]
 
-    output:
-            df_data: pandas dataframe with new columns for
+    Returns
+    -------
+    df_data: pandas dataframe
+        Initial data with new columns
     '''
-    pass
+    gender_lst = []
+    for s_category in category_lst:
+        df_category_groups = df_data.groupby(s_category).mean()['Churn']
+        s_new_col = s_category
+        if not isinstance(response, type(None)):
+            s_new_col = f'{s_category}_{response}'
+        df_data[s_new_col] = df_data[s_category].map(df_category_groups)
+
+    return df_data
 
 
 def perform_feature_engineering(df_data, response):

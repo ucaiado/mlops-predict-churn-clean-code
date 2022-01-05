@@ -8,6 +8,12 @@ other_plots:
   - 'Marital_Status'
   - 'Total_Trans_Ct'
   - 'HeatMap'
+encoding_columns:
+  - 'Gender'
+  - 'Education_Level'
+  - 'Marital_Status'
+  - 'Income_Category'
+  - 'Card_Category'
 cat_columns:
   - "Gender"
   - "Education_Level"

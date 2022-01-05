@@ -88,11 +88,37 @@ def test_eda(perform_eda: object, df_data: pd.DataFrame) -> None:
     logging.info("Testing test_eda: Checking plot files SUCCESS")
 
 
-def test_encoder_helper(encoder_helper):
+def test_encoder_helper(encoder_helper: object, df_data: pd.DataFrame) -> None:
     '''
     test encoder helper
     '''
-    pass
+    # try to run encoder_helper function
+    try:
+        df_data = encoder_helper(
+            df_data=df_data,
+            category_lst=CONFS.get('encoding_columns'),
+            response='Churn')
+        logging.info("Testing encoder_helper: function SUCCESS")
+    except AssertionError as err:
+        s_msg = "Testing encoder_helper: function ERROR"
+        logging.error(s_msg)
+        raise err
+
+    # check the outputs
+    l_expected_cols = [f'{x}_Churn' for x in CONFS.get('encoding_columns')]
+    l_cols_found = set(df_data.columns).intersection(set(l_expected_cols))
+    try:
+        assert len(l_expected_cols) == len(l_cols_found)
+        logging.info("Testing encoder_helper: Checking Data SUCCESS")
+    except AssertionError as err:
+        s_msg = (
+            "Testing encoder_helper: Checking Data ERROR"
+            f"\n\t!! Testing encoder_helper: Was expected "
+            f"new {len(l_expected_cols)} columns."
+            f"Just found {len(l_cols_found)} columns.")
+        logging.error(s_msg)
+        raise err
+
 
 def test_perform_feature_engineering(perform_feature_engineering):
     '''
@@ -100,15 +126,18 @@ def test_perform_feature_engineering(perform_feature_engineering):
     '''
     pass
 
+
 def test_train_models(train_models):
     '''
     test train_models
     '''
     pass
 
+
 if __name__ == "__main__":
     df_data = test_import(cls.import_data)
     test_eda(cls.perform_eda, df_data)
+    test_encoder_helper(cls.encoder_helper, df_data)
 
 
 
