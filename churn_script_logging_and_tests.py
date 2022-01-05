@@ -88,14 +88,15 @@ def test_eda(perform_eda: object, df_data: pd.DataFrame) -> None:
     logging.info("Testing test_eda: Checking plot files SUCCESS")
 
 
-def test_encoder_helper(encoder_helper: object, df_data: pd.DataFrame) -> None:
+def test_encoder_helper(
+    encoder_helper: object, df_data: pd.DataFrame) -> pd.DataFrame:
     '''
     test encoder helper
     '''
     # try to run encoder_helper function
     try:
         df_data = encoder_helper(
-            df_data=df_data,
+            raw_data=df_data,
             category_lst=CONFS.get('encoding_columns'),
             response='Churn')
         logging.info("Testing encoder_helper: function SUCCESS")
@@ -114,18 +115,63 @@ def test_encoder_helper(encoder_helper: object, df_data: pd.DataFrame) -> None:
         s_msg = (
             "Testing encoder_helper: Checking Data ERROR"
             f"\n\t!! Testing encoder_helper: Was expected "
-            f"new {len(l_expected_cols)} columns."
+            f"new {len(l_expected_cols)} columns. "
+            f"Just found {len(l_cols_found)} columns.")
+        logging.error(s_msg)
+        raise err
+    return df_data
+
+
+def test_perform_feature_engineering(
+    perform_feature_engineering: object,
+    df_data: pd.DataFrame) -> cls.Features:
+    '''
+    test perform_feature_engineering
+    '''
+    # try to run encoder_helper function
+    try:
+        obj_features = perform_feature_engineering(
+            enconded_data=df_data,
+            response='Churn')
+        logging.info("Testing perform_feature_engineering: function SUCCESS")
+    except AssertionError as err:
+        s_msg = "Testing perform_feature_engineering: function ERROR"
+        logging.error(s_msg)
+        raise err
+
+    # check the columns from x_train
+    l_expected_cols = CONFS.get('keep_cols')
+    l_cols_found = set(obj_features.x_train.columns).intersection(
+        set(l_expected_cols))
+    try:
+        assert len(l_expected_cols) == len(l_cols_found)
+        logging.info(
+            "Testing perform_feature_engineering: Checking columns SUCCESS")
+    except AssertionError as err:
+        s_msg = (
+            "Testing perform_feature_engineering: Checking columns ERROR"
+            f"\n\t!! Testing perform_feature_engineering: Was expected "
+            f"new {len(l_expected_cols)} columns. "
             f"Just found {len(l_cols_found)} columns.")
         logging.error(s_msg)
         raise err
 
+    # check data difference length
+    f_diff_size = obj_features.x_test.shape[0]
+    f_diff_size = f_diff_size / (f_diff_size + obj_features.x_train.shape[0])
+    try:
+        assert abs(f_diff_size - 0.3) <= 0.01
+        logging.info(
+            "Testing perform_feature_engineering: Checking split size SUCCESS")
+    except AssertionError as err:
+        s_msg = (
+            "Testing perform_feature_engineering: Checking split size ERROR"
+            f"\n\t!! Testing perform_feature_engineering: Was expected "
+            f"30% in test size. It is {f_diff_size*100:.0f}%.")
+        logging.error(s_msg)
+        raise err
 
-def test_perform_feature_engineering(perform_feature_engineering):
-    '''
-    test perform_feature_engineering
-    '''
-    pass
-
+    return obj_features
 
 def test_train_models(train_models):
     '''
@@ -137,7 +183,9 @@ def test_train_models(train_models):
 if __name__ == "__main__":
     df_data = test_import(cls.import_data)
     test_eda(cls.perform_eda, df_data)
-    test_encoder_helper(cls.encoder_helper, df_data)
+    df_data = test_encoder_helper(cls.encoder_helper, df_data)
+    obj_features = test_perform_feature_engineering(
+        cls.perform_feature_engineering, df_data)
 
 
 

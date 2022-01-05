@@ -6,12 +6,15 @@ Date: January 4th, 2022
 '''
 
 # import libraries
+from dataclasses import dataclass
 import yaml
 import joblib
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from dataclasses import dataclass
+
+from sklearn.model_selection import train_test_split
+
 
 # setup environment and global variables
 with open('confs/churn_library.yml', 'r', encoding="utf-8") as conf_file:
@@ -30,11 +33,12 @@ def _save_figure(fig: plt.Figure, s_path2save: str, s_name: str) -> None:
 
 
 @dataclass
-class InventoryItem:
-    '''Class for keeping track of an item in inventory.'''
-    name: str
-    unit_price: float
-    quantity_on_hand: int = 0
+class Features:
+    '''Class for keeping data splitted to traing models'''
+    x_train: pd.DataFrame
+    x_test: pd.DataFrame
+    y_train: pd.Series
+    y_test: pd.Series
 
 
 # implement mains functions
@@ -50,23 +54,23 @@ def import_data(s_pth: str) -> pd.DataFrame:
 
     Returns
     -------
-    df_data :  pandas dataframe
+    raw_data :  pandas dataframe
         Data Matrix
     '''
-    df_data = pd.read_csv(s_pth)
-    df_data['Churn'] = df_data['Attrition_Flag'].apply(
+    raw_data = pd.read_csv(s_pth)
+    raw_data['Churn'] = raw_data['Attrition_Flag'].apply(
         lambda val: 0 if val == "Existing Customer" else 1)
 
-    return df_data
+    return raw_data
 
 
-def perform_eda(df_data: pd.DataFrame) -> None:
+def perform_eda(raw_data: pd.DataFrame) -> None:
     '''
-    perform eda on df_data and save figures to images folder
+    perform eda on raw_data and save figures to images folder
 
     Parameters
     ----------
-    df_data :  pandas dataframe
+    raw_data :  pandas dataframe
         Data Matrix
 
     Returns
@@ -77,33 +81,33 @@ def perform_eda(df_data: pd.DataFrame) -> None:
     s_path2save = CONFS.get('image_folder')
     for s_col in CONFS.get('histogram_plots'):
         fig = plt.figure(figsize=(20, 10))
-        df_data[s_col].hist()
+        raw_data[s_col].hist()
         _save_figure(fig, s_path2save, s_col)
 
     # create value count plot from Marital_Status col
     s_col = 'Marital_Status'
     fig = plt.figure(figsize=(20, 10))
-    df_data[s_col].value_counts('normalize').plot(
+    raw_data[s_col].value_counts('normalize').plot(
         kind='bar', figsize=(20, 10))
     _save_figure(fig, s_path2save, s_col)
 
     # create distribution plot from Total_Trans_Ct col
     s_col = 'Total_Trans_Ct'
     fig = plt.figure(figsize=(20, 10))
-    sns.histplot(df_data[s_col], kde=True)
+    sns.histplot(raw_data[s_col], kde=True)
     _save_figure(fig, s_path2save, s_col)
 
     # create a heatmap from correlations between all columns
     fig = plt.figure(figsize=(20, 10))
-    sns.heatmap(df_data.corr(), annot=False, cmap='Dark2_r', linewidths=2)
+    sns.heatmap(raw_data.corr(), annot=False, cmap='Dark2_r', linewidths=2)
     _save_figure(fig, s_path2save, 'HeatMap')
 
 
 def encoder_helper(
-    df_data: pd.DataFrame,
+    raw_data: pd.DataFrame,
     category_lst: list,
     response: str = None
-    ) -> pd.DataFrame:
+) -> pd.DataFrame:
     '''
     helper function to turn each categorical column into a new column with
     propotion of churn for each category - associated with cell 15 from the
@@ -111,7 +115,7 @@ def encoder_helper(
 
     Parameters
     ----------
-    df_data: pandas dataframe
+    raw_data: pandas dataframe
     category_lst: list
         List of columns that contain categorical features
     response: str (optional)
@@ -119,33 +123,46 @@ def encoder_helper(
 
     Returns
     -------
-    df_data: pandas dataframe
+    enconded_data: pandas dataframe
         Initial data with new columns
     '''
-    gender_lst = []
+    enconded_data = raw_data.copy()
     for s_category in category_lst:
-        df_category_groups = df_data.groupby(s_category).mean()['Churn']
+        df_category_groups = raw_data.groupby(s_category).mean()['Churn']
         s_new_col = s_category
         if not isinstance(response, type(None)):
             s_new_col = f'{s_category}_{response}'
-        df_data[s_new_col] = df_data[s_category].map(df_category_groups)
+        enconded_data[s_new_col] = raw_data[s_category].map(df_category_groups)
 
-    return df_data
+    return enconded_data
 
 
-def perform_feature_engineering(df_data, response):
+def perform_feature_engineering(enconded_data: pd.DataFrame) -> Features:
     '''
-    input:
-              df_data: pandas dataframe
-              response: string of response name [optional argument that could
-              be used for naming variables or index y column]
+    Parameters
+    ----------
+    enconded_data: pandas dataframe
 
-    output:
-              X_train: X training data
-              X_test: X testing data
-              y_train: y training data
-              y_test: y testing data
+    Returns
+    -------
+    obj_features: Features
+        Struct holding X training, X testing, y training, y testing data
     '''
+    # split data
+    l_keep_cols = CONFS.get('keep_cols')
+    x_data = enconded_data[l_keep_cols]
+    y_data = enconded_data['Churn']
+    t_rtn = train_test_split(x_data, y_data, test_size=0.3, random_state=42)
+
+    # instantiate Features object to return
+    obj_features = Features(
+        x_train=t_rtn[0],
+        x_test=t_rtn[1],
+        y_train=t_rtn[2],
+        y_test=t_rtn[3],
+    )
+
+    return obj_features
 
 
 def classification_report_image(y_train,
