@@ -14,6 +14,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import GridSearchCV
 
 
 # setup environment and global variables
@@ -78,7 +81,7 @@ def perform_eda(raw_data: pd.DataFrame) -> None:
     None
     '''
     # create histogramns
-    s_path2save = CONFS.get('image_folder')
+    s_path2save = CONFS.get('eda_folder')
     for s_col in CONFS.get('histogram_plots'):
         fig = plt.figure(figsize=(20, 10))
         raw_data[s_col].hist()
@@ -202,15 +205,49 @@ def feature_importance_plot(model, X_data, output_pth):
     pass
 
 
-def train_models(X_train, X_test, y_train, y_test):
+def train_models(obj_features: Features) -> dict:
     '''
     train, store model results: images + scores, and store models
-    input:
-              X_train: X training data
-              X_test: X testing data
-              y_train: y training data
-              y_test: y testing data
-    output:
-              None
+
+    Parameters
+    ----------
+    obj_features: Features
+        Struct holding X training, X testing, y training, y testing data
+
+    Returns
+    -------
+    d_models: dict
+        Dictionary with the models created and indexed by name
     '''
+
+    # initialize models
+    d_rfc_confs = CONFS['models'].get('RandomForestClassifier')
+    d_lrc_confs = CONFS['models'].get('LogisticRegression')
+
+    rfc = RandomForestClassifier(random_state=d_rfc_confs.get('random_state'))
+    lrc = LogisticRegression(solver=d_lrc_confs.get('solver'))
+
+    # perform grid search on Random Forest
+    cv_rfc = GridSearchCV(
+        estimator=rfc,
+        param_grid=d_rfc_confs.get('param_grid'),
+        cv=d_rfc_confs.get('grid_cv'))
+    cv_rfc.fit(obj_features.x_train, obj_features.y_train)
+
+    # fit logistic regression
+    lrc.fit(obj_features.x_train, obj_features.y_train)
+
+    # analize models created
+
+    # store models
+    d_models = {model.__class__.__name__: model for model in
+                [cv_rfc.best_estimator_, lrc]}
+    for s_model in d_models:
+        s_path = CONFS['models'][s_model].get('path')
+        joblib.dump(d_models[s_model], s_path)
+
+    return d_models
+
+
+if __name__ == '__main__':
     pass

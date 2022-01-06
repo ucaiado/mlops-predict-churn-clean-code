@@ -1,6 +1,6 @@
 data_path: "./data/bank_data.csv"
 log_path: "./logs/churn_library.log"
-image_folder: "./images/"
+eda_folder: "./images/eda/"
 histogram_plots:
   - "Churn"
   - "Customer_Age"
@@ -55,6 +55,22 @@ keep_cols:
   - "Marital_Status_Churn"
   - "Income_Category_Churn"
   - "Card_Category_Churn"
-models_path:
-  rfc: "../models/rfc_model.pkl"
-  logistic: "../logistic_model.pkl"
+models:
+  RandomForestClassifier:
+    path: "./models/rfc_model.pkl"
+    random_state: 42
+    # param_grid:
+    #   n_estimators: [200, 500]
+    #   max_features: ["auto", "sqrt"]
+    #   max_depth: [4, 5, 100]
+    #   criterion: ["gini", "entropy"]
+    # grid_cv: 5
+    param_grid:
+      n_estimators: [200]
+      max_features: ["auto"]
+      max_depth: [100]
+      criterion: ["gini"]
+    grid_cv: 2
+  LogisticRegression:
+    path:  "./models/logistic_model.pkl"
+    solver: "liblinear"

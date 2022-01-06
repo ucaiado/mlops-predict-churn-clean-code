@@ -76,7 +76,7 @@ def test_eda(perform_eda: object, df_data: pd.DataFrame) -> None:
         raise err
 
     # check the outputs
-    s_path2save = CONFS.get('image_folder')
+    s_path2save = CONFS.get('eda_folder')
     for s_col in CONFS.get('histogram_plots') + CONFS.get('other_plots'):
         try:
             assert pathlib.Path(f'{s_path2save}{s_col}.png').is_file()
@@ -130,9 +130,7 @@ def test_perform_feature_engineering(
     '''
     # try to run encoder_helper function
     try:
-        obj_features = perform_feature_engineering(
-            enconded_data=df_data,
-            response='Churn')
+        obj_features = perform_feature_engineering(enconded_data=df_data)
         logging.info("Testing perform_feature_engineering: function SUCCESS")
     except AssertionError as err:
         s_msg = "Testing perform_feature_engineering: function ERROR"
@@ -173,11 +171,32 @@ def test_perform_feature_engineering(
 
     return obj_features
 
-def test_train_models(train_models):
+
+def test_train_models(
+    train_models: object, obj_features: cls.Features) -> None:
     '''
     test train_models
     '''
-    pass
+    # try to run train_models function
+    try:
+        d_models = train_models(obj_features=obj_features)
+        logging.info("Testing train_models: function SUCCESS")
+    except AssertionError as err:
+        s_msg = "Testing train_models: function ERROR"
+        logging.error(s_msg)
+        raise err
+
+    # check the stored models
+    try:
+        for s_model in d_models:
+            s_model_path = CONFS['models'][s_model].get('path')
+            assert pathlib.Path(s_model_path).is_file()
+        logging.info(
+            "Testing train_models: Checking model pkl files SUCCESS")
+    except AssertionError as err:
+        s_msg = ("Testing train_models: Checking model pkl files ERROR")
+        logging.error(s_msg)
+        raise err
 
 
 if __name__ == "__main__":
@@ -186,6 +205,8 @@ if __name__ == "__main__":
     df_data = test_encoder_helper(cls.encoder_helper, df_data)
     obj_features = test_perform_feature_engineering(
         cls.perform_feature_engineering, df_data)
+    test_train_models(cls.train_models, obj_features)
+
 
 
 
