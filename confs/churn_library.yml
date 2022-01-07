@@ -58,6 +58,7 @@ keep_cols:
 models:
   RandomForestClassifier:
     path: "./models/rfc_model.pkl"
+    plot_path: "./images/results/"
     random_state: 42
     # param_grid:
     #   n_estimators: [200, 500]

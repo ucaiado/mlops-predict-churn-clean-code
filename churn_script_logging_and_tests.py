@@ -198,6 +198,20 @@ def test_train_models(
         logging.error(s_msg)
         raise err
 
+    # check the Feature Importance plot
+    try:
+        s_model = 'RandomForestClassifier'
+        s_plot_name = 'FeatureImportances'
+        s_plot_path = (f"{CONFS['models'][s_model].get('plot_path')}"
+                       f"{s_plot_name}.png")
+        assert pathlib.Path(s_plot_path).is_file()
+        logging.info(
+            "Testing train_models: Checking Feature Importance plot SUCCESS")
+    except AssertionError as err:
+        s_msg = ("Testing train_models: Checking Feature Importance plot ERROR")
+        logging.error(s_msg)
+        raise err
+
 
 if __name__ == "__main__":
     df_data = test_import(cls.import_data)

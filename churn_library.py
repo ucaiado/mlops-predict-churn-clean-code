@@ -10,6 +10,7 @@ from dataclasses import dataclass
 import yaml
 import joblib
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -191,18 +192,42 @@ def classification_report_image(y_train,
     pass
 
 
-def feature_importance_plot(model, X_data, output_pth):
+def feature_importance_plot(
+        model: object,
+        obj_features: Features,
+        output_pth: str) -> None:
     '''
-    creates and stores the feature importances in pth
-    input:
-            model: model object containing feature_importances_
-            X_data: pandas dataframe of X values
-            output_pth: path to store the figure
+    Creates and stores the feature importances in output_pth
 
-    output:
-             None
+    Parameters
+    ----------
+    model: Scikit-learn Model object
+        model object containing feature_importances_
+    obj_features: Features
+        Struct holding X training, X testing, y training, y testing data
+    output_pth: str
+        path to store the figure
+
+    Returns
+    -------
+    None
     '''
-    pass
+    #  Sort feature importances in descending order
+    na_importances = model.feature_importances_
+    na_indices = np.argsort(na_importances)[::-1]
+
+    # Rearrange feature names so they match the sorted feature importances
+    l_names = [obj_features.x_train.columns[i] for i in na_indices]
+
+    # Create plot
+    fig = plt.figure(figsize=(20, 5))
+    plt.title("Feature Importance")
+    plt.ylabel('Importance')
+    plt.bar(range(obj_features.x_train.shape[1]), na_importances[na_indices])
+    plt.xticks(range(obj_features.x_train.shape[1]), l_names, rotation=90)
+
+    # store figure
+    _save_figure(fig, output_pth, 'FeatureImportances')
 
 
 def train_models(obj_features: Features) -> dict:
@@ -237,14 +262,18 @@ def train_models(obj_features: Features) -> dict:
     # fit logistic regression
     lrc.fit(obj_features.x_train, obj_features.y_train)
 
-    # analize models created
-
     # store models
     d_models = {model.__class__.__name__: model for model in
                 [cv_rfc.best_estimator_, lrc]}
     for s_model in d_models:
-        s_path = CONFS['models'][s_model].get('path')
+        s_path = CONFS['models']['RandomForestClassifier'].get('path')
         joblib.dump(d_models[s_model], s_path)
+
+    # analize models created
+    feature_importance_plot(
+        model=d_models['RandomForestClassifier'],
+        obj_features=obj_features,
+        output_pth=d_rfc_confs.get('plot_path'))
 
     return d_models
 
