@@ -18,6 +18,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import classification_report
 
 
 # setup environment and global variables
@@ -41,6 +42,14 @@ class Features:
     '''Class for keeping data splitted to traing models'''
     x_train: pd.DataFrame
     x_test: pd.DataFrame
+    y_train: pd.Series
+    y_test: pd.Series
+
+
+@dataclass
+class ModelPredictions:
+    '''Class for keeping data related to predictions on Features'''
+    model_name: str
     y_train: pd.Series
     y_test: pd.Series
 
@@ -169,12 +178,11 @@ def perform_feature_engineering(enconded_data: pd.DataFrame) -> Features:
     return obj_features
 
 
-def classification_report_image(y_train,
-                                y_test,
-                                y_train_preds_lr,
-                                y_train_preds_rf,
-                                y_test_preds_lr,
-                                y_test_preds_rf):
+def classification_report_image(
+    obj_features: Features,
+    obj_preds: ModelPredictions,
+    output_pth: str
+) -> None:
     '''
     produces classification report for training and testing results and stores
     report as image in images folder
@@ -189,7 +197,31 @@ def classification_report_image(y_train,
     output:
              None
     '''
-    pass
+
+    # create figure
+    fig = plt.figure(figsize=(5, 5))
+    plt.rc('figure')
+    s_model = obj_preds.model_name
+
+    # fill in the figure with classification_report from train set
+    plt.text(0.01, 0.6, str(f'{s_model} Train'),
+             {'fontsize': 10}, fontproperties='monospace')
+    plt.text(0.01, 0.7, str(classification_report(
+        obj_preds.y_train,
+        obj_preds.y_train)),
+        {'fontsize': 10}, fontproperties='monospace')
+
+    # fill in the figure with classification_report from test set
+    plt.text(0.01, 1.25, str(f'{s_model} Test'),
+             {'fontsize': 10}, fontproperties='monospace')
+    plt.text(0.01, 0.05, str(classification_report(
+        obj_features.y_test,
+        obj_preds.y_test)),
+        {'fontsize': 10}, fontproperties='monospace')
+    plt.axis('off')
+
+    # store figure
+    _save_figure(fig, output_pth, f'{s_model}_ClassificationReport')
 
 
 def feature_importance_plot(
@@ -270,13 +302,49 @@ def train_models(obj_features: Features) -> dict:
         joblib.dump(d_models[s_model], s_path)
 
     # analize models created
+    s_plot_path = d_rfc_confs.get('plot_path')
     feature_importance_plot(
         model=d_models['RandomForestClassifier'],
         obj_features=obj_features,
-        output_pth=d_rfc_confs.get('plot_path'))
+        output_pth=s_plot_path)
+
+    for s_model in d_models:
+        model = d_models[s_model]
+        obj_tests = ModelPredictions(
+            model_name=s_model,
+            y_train=model.predict(obj_features.x_train),
+            y_test=model.predict(obj_features.x_test)
+        )
+        classification_report_image(
+            obj_features=obj_features,
+            obj_preds=obj_tests,
+            output_pth=s_plot_path)
 
     return d_models
 
 
+def main():
+    '''
+    Load data from data_path in conf file and train and evaluate some models
+    '''
+    # import data
+    raw_data = import_data(CONFS.get('data_path'))
+
+    # perform EDA
+    perform_eda(raw_data)
+
+    # enconde columns
+    encoded_data = encoder_helper(
+        raw_data=raw_data,
+        category_lst=CONFS.get('encoding_columns'),
+        response='Churn')
+
+    # create features
+    obj_features = perform_feature_engineering(enconded_data=encoded_data)
+
+    # train and evaluate models
+    _ = train_models(obj_features=obj_features)
+
+
 if __name__ == '__main__':
-    pass
+    main()

@@ -1,5 +1,5 @@
 '''
-Implement tests to clasees and functions implemented in churn_library
+Implement tests to classes and functions implemented in churn_library
 
 Author: ucaiado
 Date: January 4th, 2022
@@ -178,11 +178,12 @@ def test_train_models(
     test train_models
     '''
     # try to run train_models function
+    s_title = 'Testing train_models'
     try:
         d_models = train_models(obj_features=obj_features)
-        logging.info("Testing train_models: function SUCCESS")
+        logging.info(f"{s_title}: function SUCCESS")
     except AssertionError as err:
-        s_msg = "Testing train_models: function ERROR"
+        s_msg = f"{s_title}: function ERROR"
         logging.error(s_msg)
         raise err
 
@@ -191,34 +192,55 @@ def test_train_models(
         for s_model in d_models:
             s_model_path = CONFS['models'][s_model].get('path')
             assert pathlib.Path(s_model_path).is_file()
-        logging.info(
-            "Testing train_models: Checking model pkl files SUCCESS")
+        logging.info(f"{s_title}: Checking model pkl files SUCCESS")
     except AssertionError as err:
-        s_msg = ("Testing train_models: Checking model pkl files ERROR")
+        s_msg = (f"{s_title}: Checking model pkl files ERROR")
         logging.error(s_msg)
         raise err
 
     # check the Feature Importance plot
+    s_model = 'RandomForestClassifier'
+    s_plot_path = CONFS['models'][s_model].get('plot_path')
     try:
-        s_model = 'RandomForestClassifier'
         s_plot_name = 'FeatureImportances'
-        s_plot_path = (f"{CONFS['models'][s_model].get('plot_path')}"
-                       f"{s_plot_name}.png")
-        assert pathlib.Path(s_plot_path).is_file()
-        logging.info(
-            "Testing train_models: Checking Feature Importance plot SUCCESS")
+        s_plot_fname = f"{s_plot_path}{s_plot_name}.png"
+        assert pathlib.Path(s_plot_fname).is_file()
+        logging.info(f"{s_title}: Checking {s_plot_name} plot SUCCESS")
     except AssertionError as err:
-        s_msg = ("Testing train_models: Checking Feature Importance plot ERROR")
+        s_msg = (f"{s_title}: Checking {s_plot_name} plot ERROR"
+                 f"\n\t!! File not found")
+        logging.error(s_msg)
+        raise err
+
+    # check the Classification Report plot
+    try:
+        s_plot_name = 'ClassificationReport'
+        for s_model in d_models:
+            s_plot_fname = f"{s_plot_path}{s_model}_{s_plot_name}.png"
+            assert pathlib.Path(s_plot_fname).is_file()
+        logging.info(f"{s_title}: Checking {s_plot_name} plot SUCCESS")
+    except AssertionError as err:
+        s_msg = (f"{s_title}: Checking {s_plot_name} plot ERROR"
+                 f"\n\t!! File not found")
         logging.error(s_msg)
         raise err
 
 
 if __name__ == "__main__":
-    df_data = test_import(cls.import_data)
-    test_eda(cls.perform_eda, df_data)
-    df_data = test_encoder_helper(cls.encoder_helper, df_data)
+    # import data
+    raw_data = test_import(cls.import_data)
+
+    # perform EDA
+    test_eda(cls.perform_eda, raw_data)
+
+    # enconde columns
+    encoded_data = test_encoder_helper(cls.encoder_helper, raw_data)
+
+    # create features
     obj_features = test_perform_feature_engineering(
-        cls.perform_feature_engineering, df_data)
+        cls.perform_feature_engineering, encoded_data)
+
+    # train and evaluate models
     test_train_models(cls.train_models, obj_features)
 
 
