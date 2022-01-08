@@ -4,54 +4,45 @@ Implement tests to classes and functions implemented in churn_library
 Author: ucaiado
 Date: January 4th, 2022
 '''
-import os
 import sys
 import logging
-import yaml
 import pathlib
+import yaml
 import pandas as pd
 import churn_library as cls
 
 
-
-'''
-Begin setup structures and global variables
-'''
-
 # load confs
-CONFS = yaml.safe_load(open('confs/churn_library.yml', 'r'))
+with open('confs/churn_library.yml', 'r', encoding="utf-8") as conf_file:
+    CONFS = yaml.safe_load(conf_file)
 
 
 # set logging to write a file and to stodout
 logging.basicConfig(
     filename=CONFS.get('log_path'),
-    level = logging.INFO,
+    level=logging.INFO,
     filemode='w',
     format='%(name)s - %(levelname)s - %(message)s')
 
 logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
 
-
-'''
-End setup structures and global variables
-'''
-
+# implement test functions
 
 def test_import(import_data: object) -> pd.DataFrame:
     '''
     test data import
     '''
     try:
-        df = import_data(CONFS.get('data_path'))
+        df_data = import_data(CONFS.get('data_path'))
         logging.info("Testing import_data: function SUCCESS")
     except FileNotFoundError as err:
         logging.error("Testing import_data: The file wasn't found")
         raise err
 
     try:
-        assert df.shape[0] > 0
-        assert df.shape[1] > 0
+        assert df_data.shape[0] > 0
+        assert df_data.shape[1] > 0
         logging.info("Testing import_data: Checking Data SUCCESS")
     except AssertionError as err:
         s_msg = (
@@ -60,7 +51,7 @@ def test_import(import_data: object) -> pd.DataFrame:
             "to have rows and columns")
         logging.error(s_msg)
         raise err
-    return df
+    return df_data
 
 
 def test_eda(perform_eda: object, df_data: pd.DataFrame) -> None:
@@ -89,7 +80,7 @@ def test_eda(perform_eda: object, df_data: pd.DataFrame) -> None:
 
 
 def test_encoder_helper(
-    encoder_helper: object, df_data: pd.DataFrame) -> pd.DataFrame:
+        encoder_helper: object, df_data: pd.DataFrame) -> pd.DataFrame:
     '''
     test encoder helper
     '''
@@ -123,8 +114,8 @@ def test_encoder_helper(
 
 
 def test_perform_feature_engineering(
-    perform_feature_engineering: object,
-    df_data: pd.DataFrame) -> cls.Features:
+        perform_feature_engineering: object,
+        df_data: pd.DataFrame) -> cls.Features:
     '''
     test perform_feature_engineering
     '''
@@ -173,7 +164,7 @@ def test_perform_feature_engineering(
 
 
 def test_train_models(
-    train_models: object, obj_features: cls.Features) -> None:
+        train_models: object, obj_features: cls.Features) -> None:
     '''
     test train_models
     '''
@@ -181,7 +172,8 @@ def test_train_models(
     s_title = 'Testing train_models'
     try:
         d_models = train_models(obj_features=obj_features)
-        logging.info(f"{s_title}: function SUCCESS")
+        s_msg = f"{s_title}: function SUCCESS"
+        logging.info(s_msg)
     except AssertionError as err:
         s_msg = f"{s_title}: function ERROR"
         logging.error(s_msg)
@@ -192,7 +184,8 @@ def test_train_models(
         for s_model in d_models:
             s_model_path = CONFS['models'][s_model].get('path')
             assert pathlib.Path(s_model_path).is_file()
-        logging.info(f"{s_title}: Checking model pkl files SUCCESS")
+        s_msg = f"{s_title}: Checking model pkl files SUCCESS"
+        logging.info(s_msg)
     except AssertionError as err:
         s_msg = (f"{s_title}: Checking model pkl files ERROR")
         logging.error(s_msg)
@@ -205,7 +198,8 @@ def test_train_models(
         s_plot_name = 'FeatureImportances'
         s_plot_fname = f"{s_plot_path}{s_plot_name}.png"
         assert pathlib.Path(s_plot_fname).is_file()
-        logging.info(f"{s_title}: Checking {s_plot_name} plot SUCCESS")
+        s_msg = f"{s_title}: Checking {s_plot_name} plot SUCCESS"
+        logging.info(s_msg)
     except AssertionError as err:
         s_msg = (f"{s_title}: Checking {s_plot_name} plot ERROR"
                  f"\n\t!! File not found")
@@ -218,7 +212,8 @@ def test_train_models(
         for s_model in d_models:
             s_plot_fname = f"{s_plot_path}{s_model}_{s_plot_name}.png"
             assert pathlib.Path(s_plot_fname).is_file()
-        logging.info(f"{s_title}: Checking {s_plot_name} plot SUCCESS")
+        s_msg = f"{s_title}: Checking {s_plot_name} plot SUCCESS"
+        logging.info(s_msg)
     except AssertionError as err:
         s_msg = (f"{s_title}: Checking {s_plot_name} plot ERROR"
                  f"\n\t!! File not found")
@@ -237,17 +232,8 @@ if __name__ == "__main__":
     encoded_data = test_encoder_helper(cls.encoder_helper, raw_data)
 
     # create features
-    obj_features = test_perform_feature_engineering(
+    this_features = test_perform_feature_engineering(
         cls.perform_feature_engineering, encoded_data)
 
     # train and evaluate models
-    test_train_models(cls.train_models, obj_features)
-
-
-
-
-
-
-
-
-
+    test_train_models(cls.train_models, this_features)

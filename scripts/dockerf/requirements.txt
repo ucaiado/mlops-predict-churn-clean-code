@@ -20,4 +20,5 @@ ipykernel
 jupyter_contrib_nbextensions
 jupyter_nbextensions_configurator
 pydantic
+dataclasses
 typing

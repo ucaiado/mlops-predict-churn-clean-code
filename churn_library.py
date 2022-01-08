@@ -7,18 +7,18 @@ Date: January 4th, 2022
 
 # import libraries
 from dataclasses import dataclass
+from sklearn.metrics import classification_report
+from sklearn.model_selection import GridSearchCV
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+import seaborn as sns
 import yaml
 import joblib
 import pandas as pd
 import numpy as np
+import matplotlib as mpl; mpl.use('Agg')
 import matplotlib.pyplot as plt
-import seaborn as sns
-
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import classification_report
 
 
 # setup environment and global variables

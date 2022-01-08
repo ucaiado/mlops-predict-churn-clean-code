@@ -22,11 +22,15 @@ $ make docker-build
 ### Run
 In a terminal or command window, navigate to the top-level project directory
  `mlops-predict-churn-clean-code/` (that contains this README) and run the following
- command...
+ command.
 
 ```shell
-$ make ...
+$ make tests
 ```
+
+It will generate EDA plots in the `images/eda/` folder, store some results also
+ as images in the `images/results/` directory, save the models trained in
+ `models/`, and write the test logs in `logs/churn_library.log` file.
 
 
 ### License
