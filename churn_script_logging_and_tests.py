@@ -180,16 +180,21 @@ def test_train_models(
         raise err
 
     # check the stored models
-    try:
-        for s_model in d_models:
-            s_model_path = CONFS['models'][s_model].get('path')
+
+    for s_model in d_models:
+        s_model_path = CONFS['models'][s_model].get('path')
+        try:
             assert pathlib.Path(s_model_path).is_file()
-        s_msg = f"{s_title}: Checking model pkl files SUCCESS"
-        logging.info(s_msg)
-    except AssertionError as err:
-        s_msg = (f"{s_title}: Checking model pkl files ERROR")
-        logging.error(s_msg)
-        raise err
+        except AssertionError as err:
+            s_msg = (
+                f"{s_title}: Checking model pkl files ERROR"
+                f"\n\t!! File {s_model_path} not found"
+            )
+            logging.error(s_msg)
+            raise err
+    s_msg = f"{s_title}: Checking model pkl files SUCCESS"
+    logging.info(s_msg)
+
 
     # check the Feature Importance plot
     s_model = 'RandomForestClassifier'

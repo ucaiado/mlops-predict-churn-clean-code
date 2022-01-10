@@ -7,18 +7,19 @@ Date: January 4th, 2022
 
 # import libraries
 from dataclasses import dataclass
-from sklearn.metrics import classification_report
-from sklearn.model_selection import GridSearchCV
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
-import seaborn as sns
 import yaml
 import joblib
 import pandas as pd
 import numpy as np
 import matplotlib as mpl; mpl.use('Agg')
 import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import classification_report
 
 
 # setup environment and global variables
@@ -94,14 +95,16 @@ def perform_eda(raw_data: pd.DataFrame) -> None:
     s_path2save = CONFS.get('eda_folder')
     for s_col in CONFS.get('histogram_plots'):
         fig = plt.figure(figsize=(20, 10))
-        raw_data[s_col].hist()
+        sns.countplot(x=raw_data[s_col])
         _save_figure(fig, s_path2save, s_col)
 
     # create value count plot from Marital_Status col
     s_col = 'Marital_Status'
     fig = plt.figure(figsize=(20, 10))
-    raw_data[s_col].value_counts('normalize').plot(
+    ax = raw_data[s_col].value_counts('normalize').plot(
         kind='bar', figsize=(20, 10))
+    ax.set_ylabel('proportion')
+    ax.set_xlabel('Marital_Status')
     _save_figure(fig, s_path2save, s_col)
 
     # create distribution plot from Total_Trans_Ct col
@@ -123,7 +126,7 @@ def encoder_helper(
 ) -> pd.DataFrame:
     '''
     helper function to turn each categorical column into a new column with
-    propotion of churn for each category - associated with cell 15 from the
+    proportion of churn for each category - associated with cell 15 from the
     notebook
 
     Parameters
@@ -298,7 +301,7 @@ def train_models(obj_features: Features) -> dict:
     d_models = {model.__class__.__name__: model for model in
                 [cv_rfc.best_estimator_, lrc]}
     for s_model in d_models:
-        s_path = CONFS['models']['RandomForestClassifier'].get('path')
+        s_path = CONFS['models'][s_model].get('path')
         joblib.dump(d_models[s_model], s_path)
 
     # analize models created
