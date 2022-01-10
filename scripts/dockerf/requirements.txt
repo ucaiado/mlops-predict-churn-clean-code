@@ -5,7 +5,7 @@ flake8
 black
 mypy
 pyamg
-numpy==1.15
+numpy>=1.21
 numpydoc
 Pillow
 scipy
