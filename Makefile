@@ -26,3 +26,5 @@ tests:  ## Test all functions implemented in churn_library
 	-f scripts/dockerf/docker-compose.py.yml \
 	run --rm -w /mlops-predict-churn-clean-code mlops \
 		bash  scripts/test-codes.sh logs/*.log churn_script_logging_and_tests.py
+clean-old-outputs:  ## Clean up old output files
+	rm -f models/*.pkl && rm -f images/eda/*.png && rm -f images/results/*.png && rm -f logs/*.log
